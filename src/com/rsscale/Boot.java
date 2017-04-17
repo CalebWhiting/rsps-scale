@@ -77,37 +77,54 @@ public class Boot {
 	}
 
 	private static void start() throws Exception {
-		try (JarInputStream in = new JarInputStream(getResource(path))) {
-			manifest = in.getManifest();
-			JarEntry entry;
-			while ((entry = in.getNextJarEntry()) != null) {
-				if (!entry.getName().endsWith(".class")) {
-					ByteArrayOutputStream bos = new ByteArrayOutputStream();
-					int n;
-					byte[] buffer = new byte[128];
-					while ((n = in.read(buffer)) != -1) {
-						bos.write(buffer, 0, n);
-					}
-					extra.put(entry.getName(), bos.toByteArray());
-					continue;
-				}
-				ClassNode node = new ClassNode();
-				ClassReader reader = new ClassReader(in);
-				reader.accept(node, ClassReader.EXPAND_FRAMES);
-				library.put(node.name, node);
-			}
-		}
+		parseBytecode();
 		runAdapters();
+		checkModern();
+		writeAndLoadBytecode();
+		initUI();
+
+		renderer = (Graphics2D) root.getGraphics();
+		renderer.setTransform(AffineTransform.getScaleInstance(scale, scale));
+		renderer.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+		renderer.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		renderer.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+		new Thread(Boot::startClient).start();
+	}
+
+	private static void initUI() {
+		InputController adapter = new InputController();
+		root = new Display();
+		root.addMouseWheelListener(adapter);
+		root.addMouseMotionListener(adapter);
+		root.addMouseListener(adapter);
+		root.addFocusListener(adapter);
+		root.addKeyListener(adapter);
+		root.setLayout(null);
+		root.setFocusable(true);
+		root.setFocusTraversalKeysEnabled(true);
+		root.setRequestFocusEnabled(true);
+		root.setPreferredSize(new Dimension((int) (scale * width), (int) (scale * height)));
+		frame = new JFrame("RS-Scale");
+		frame.setResizable(false);
+		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		frame.setContentPane(root);
+		frame.pack();
+		frame.setVisible(true);
+	}
+
+	private static void checkModern() {
 		/* Check if the client is "modern" */
 		ClassNode clientClassNode = library.get(client.replace('.', '/'));
 		while (clientClassNode != null) {
-			clientClassNode.methods.stream()
-								   .filter(m -> m.name.equals("supplyApplet"))
-								   .forEach(m -> modernApplet = true);
+			clientClassNode.methods.stream().filter(m -> m.name.equals("supplyApplet")).forEach(m -> modernApplet = true);
 			clientClassNode = library.get(clientClassNode.superName);
 		}
-		/* Modify the game so that it can be scaled */
+	}
+
+	private static void writeAndLoadBytecode() throws IOException {
 		File temp = File.createTempFile("gamepack_", ".jar", new File(System.getProperty("java.io.tmpdir")));
+
 		System.out.println("Temporary file: " + temp.getAbsolutePath());
 		try (JarOutputStream out = new JarOutputStream(new FileOutputStream(temp))) {
 			if (manifest != null) {
@@ -128,8 +145,11 @@ public class Boot {
 				out.closeEntry();
 			}
 		}
-		//Files.copy(temp.toPath(), new File("client_dump.jar").toPath(), StandardCopyOption.REPLACE_EXISTING);
 		classLoader = new URLClassLoader(new URL[]{temp.toURI().toURL()});
+		addShutdownHook(temp, classLoader);
+	}
+
+	private static void addShutdownHook(File temp, URLClassLoader classLoader) {
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			try {
 				classLoader.close();
@@ -141,32 +161,29 @@ public class Boot {
 				}
 			}
 		}));
-		root = new Display();
-		frame = new JFrame("RS-Scale");
-		InputController adapter = new InputController();
-		root.addMouseWheelListener(adapter);
-		root.addMouseMotionListener(adapter);
-		root.addMouseListener(adapter);
-		root.addFocusListener(adapter);
-		root.addKeyListener(adapter);
-		root.setLayout(null);
-		root.setFocusable(true);
-		root.setFocusTraversalKeysEnabled(true);
-		root.setRequestFocusEnabled(true);
-		root.setPreferredSize(new Dimension((int) (scale * width), (int) (scale * height)));
+	}
 
-		frame.setResizable(false);
-		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		frame.setContentPane(root);
-		frame.pack();
-		frame.setVisible(true);
-
-		renderer = (Graphics2D) root.getGraphics();
-		renderer.setTransform(AffineTransform.getScaleInstance(scale, scale));
-		renderer.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-		renderer.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		renderer.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-		new Thread(Boot::startClient).start();
+	private static void parseBytecode() throws IOException {
+		try (JarInputStream in = new JarInputStream(getResource(path))) {
+			manifest = in.getManifest();
+			JarEntry entry;
+			while ((entry = in.getNextJarEntry()) != null) {
+				if (!entry.getName().endsWith(".class")) {
+					ByteArrayOutputStream bos = new ByteArrayOutputStream();
+					int n;
+					byte[] buffer = new byte[128];
+					while ((n = in.read(buffer)) != -1) {
+						bos.write(buffer, 0, n);
+					}
+					extra.put(entry.getName(), bos.toByteArray());
+					continue;
+				}
+				ClassNode node = new ClassNode();
+				ClassReader reader = new ClassReader(in);
+				reader.accept(node, ClassReader.EXPAND_FRAMES);
+				library.put(node.name, node);
+			}
+		}
 	}
 
 	private static void startClient() {
