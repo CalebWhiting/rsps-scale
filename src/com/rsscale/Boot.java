@@ -98,15 +98,15 @@ public class Boot {
 			}
 		}
 		runAdapters();
-		{
-			ClassNode clientClassNode = library.get(client.replace('.', '/'));
-			while (clientClassNode != null) {
-				clientClassNode.methods.stream()
-									   .filter(m -> m.name.equals("supplyApplet"))
-									   .forEach(m -> modernApplet = true);
-				clientClassNode = library.get(clientClassNode.superName);
-			}
+		/* Check if the client is "modern" */
+		ClassNode clientClassNode = library.get(client.replace('.', '/'));
+		while (clientClassNode != null) {
+			clientClassNode.methods.stream()
+								   .filter(m -> m.name.equals("supplyApplet"))
+								   .forEach(m -> modernApplet = true);
+			clientClassNode = library.get(clientClassNode.superName);
 		}
+		/* Modify the game so that it can be scaled */
 		File temp = File.createTempFile("gamepack_", ".jar", new File(System.getProperty("java.io.tmpdir")));
 		System.out.println("Temporary file: " + temp.getAbsolutePath());
 		try (JarOutputStream out = new JarOutputStream(new FileOutputStream(temp))) {
