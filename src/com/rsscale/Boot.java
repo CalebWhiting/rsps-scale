@@ -29,7 +29,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
@@ -45,7 +44,6 @@ public class Boot {
 
 	public static final Map<String, ClassNode> library = new HashMap<>();
 	public static final Map<String, byte[]> extra = new HashMap<>();
-	private static final AtomicBoolean modernApplet = new AtomicBoolean(false);
 	/* Configuration */
 	public static double scale;
 	public static String path;
@@ -61,6 +59,7 @@ public class Boot {
 	public static JPanel root;
 	public static Manifest manifest;
 	private static URLClassLoader classLoader;
+	private static boolean modernApplet = false;
 
 	public static void main(String[] args0) {
 		MainArguments.setArguments(args0);
@@ -104,7 +103,7 @@ public class Boot {
 			while (clientClassNode != null) {
 				clientClassNode.methods.stream()
 									   .filter(m -> m.name.equals("supplyApplet"))
-									   .forEach(m -> modernApplet.set(true));
+									   .forEach(m -> modernApplet = true);
 				clientClassNode = library.get(clientClassNode.superName);
 			}
 		}
@@ -173,7 +172,7 @@ public class Boot {
 	private static void startClient() {
 		try {
 			Class clientClass = classLoader.loadClass(client);
-			if (modernApplet.get()) {
+			if (modernApplet) {
 				Object client = clientClass.newInstance();
 				applet = new IApplet();
 				applet.setStub(new IAppletStub(properties));
