@@ -11,7 +11,7 @@ A cross-server scalable client
               Example "path=http://<server>.com/client.jar"
 
   client:     [required] The main class of the client<br>
-              Example "com.server.Client"
+              Example "client=com.server.Client"
 
   scale:      [optional] The scale of the client as a floating point number<br>
               Example "scale=1.5"<br>
