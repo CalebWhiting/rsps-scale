@@ -8,7 +8,7 @@ A cross-server scalable client
 # Options
 
   path:       [required] The path to the servers client.jar (External-URL or Local-File)<br>
-              Example "path=http://<server>.com/client.jar"
+              Example "path=http://&lt;server&gt;.com/client.jar"
 
   client:     [required] The main class of the client<br>
               Example "client=com.server.Client"
@@ -26,7 +26,7 @@ A cross-server scalable client
               Default 503
 
   properties: [optional] The applet-stub parameters (External-URL or Local-File)<br>
-              Example "properties=http://<server>.com/server-config.properties"
+              Example "properties=http://&lt;server&gt;.com/server-config.properties"
 
 # Properties File
 
@@ -34,6 +34,6 @@ A cross-server scalable client
   these properties are server specific.
 
   Example:<br>
-   codebase=http://<server>.com/<br>
+   codebase=http://&lt;server&gt;.com/<br>
    lang=0<br>
    worldid=1<br>
