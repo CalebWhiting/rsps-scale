@@ -3,7 +3,7 @@
 A cross-server scalable client
 
 # Usage
-  java -jar &lt;jar&gt [option=value]...
+  java -jar &lt;jar&gt; [option=value]...
 
 # Options
 
