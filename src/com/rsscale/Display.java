@@ -1,6 +1,7 @@
 package com.rsscale;
 
 import javax.swing.JPanel;
+
 import java.awt.AWTEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -21,8 +22,8 @@ public class Display extends JPanel {
 		super.processEvent(evt);
 		if (evt instanceof MouseWheelEvent) {
 			MouseWheelEvent e = (MouseWheelEvent) evt;
-			int x = (int) (e.getX() / Boot.scale);
-			int y = (int) (e.getY() / Boot.scale);
+			int x = (int) ((double) e.getX() / Boot.scale);
+			int y = (int) ((double) e.getY() / Boot.scale);
 			evt = new MouseWheelEvent(e.getComponent(),
 									  e.getID(),
 									  e.getWhen(),

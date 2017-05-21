@@ -4,35 +4,43 @@ import com.rsscale.asm.Adapter;
 import com.rsscale.client.IApplet;
 import com.rsscale.client.IAppletStub;
 import com.rsscale.util.MainArguments;
-import com.sun.xml.internal.ws.org.objectweb.asm.Type;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.tree.ClassNode;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.tree.ClassNode;
+
+import com.sun.xml.internal.ws.org.objectweb.asm.Type;
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
+
 import java.applet.Applet;
+
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
-import java.io.*;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.net.URLConnection;
+
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+
+import java.io.*;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.net.URLConnection;
 
 /**
  * Project: RSPSScale
@@ -127,11 +135,11 @@ public class Boot {
 
 		System.out.println("Temporary file: " + temp.getAbsolutePath());
 		try (JarOutputStream out = new JarOutputStream(new FileOutputStream(temp))) {
-			if (manifest != null) {
+			/*if (manifest != null) {
 				out.putNextEntry(new JarEntry("META-INF/MANIFEST.MF"));
 				manifest.write(out);
 				out.closeEntry();
-			}
+			}*/
 			for (ClassNode n : library.values()) {
 				ClassWriter w = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 				n.accept(w);
