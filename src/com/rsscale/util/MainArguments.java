@@ -7,8 +7,6 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
- * Project: FOE Buddy
- *
  * @author Caleb Whiting
  */
 public class MainArguments {
